@@ -1,0 +1,40 @@
+version: '3.8'
+
+services:
+  avito-shop-service:
+    container_name: avito-shop-service
+    build: .
+    ports:
+      - "8080:4000"
+    env_file:
+      - docker.env
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - internal
+
+  db:
+    image: postgres:17
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD-SHELL", "sh -c 'pg_isready -U postgres -d shop_db'" ]
+      interval: 5s
+      timeout: 10s
+      retries: 5
+      start_period: 10s
+    networks:
+      - internal
+networks:
+  internal:
+
+volumes:
+  pgdata:
